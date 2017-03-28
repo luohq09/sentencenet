@@ -59,6 +59,7 @@ def evaluate(sess, net, dev_sentence_classes, train_sentence_classes):
             min_dist_class_name, avg_dist_class_name = classify(dev_embeddings[index],
                                                                 train_embeddings,
                                                                 train_sentence_classes)
+            index += 1
             if min_dist_class_name == dev_sentence_class.name:
                 min_pos_num += 1
             if avg_dist_class_name == dev_sentence_class.name:

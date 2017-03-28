@@ -71,11 +71,11 @@ def batch_iter(sentence_classes, batch_size, num_epochs, shuffle=True):
 
 
 # import time
-# import pretrained_embedding
+# import pretrained_word_embedding
 # start_time = time.time()
-# word_dict, embeddings = pretrained_embedding.load_embedding(
+# word_dict, embeddings = pretrained_word_embedding.load_word_embedding(
 #     "/Users/luohuaqing/sentence_data/data/xiaoshuo_cbow8.txt", np.zeros(50))
-# s_classes = load_sentences("/Users/luohuaqing/sentence_data/data/paraphrase/lkl-2016-11-29-train-seg.txt", word_dict, 25)
+# s_classes = load_sentences("/Users/luohuaqing/sentence_data/data/paraphrase/a_train_seg.txt", word_dict, 20)
 # print("s_classes len: %d" % len(s_classes))
 # for s_class in s_classes:
 #     print("class name: %s. len: %d" % (s_class.name, len(s_class.sentences)))

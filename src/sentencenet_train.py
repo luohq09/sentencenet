@@ -115,6 +115,8 @@ def main(argv=None):
     # Initialize all variables
     sess.run(tf.global_variables_initializer())
 
+    sess.run(net.word_embedding_init)
+
     with sess.as_default():
         batches = data_helper.batch_iter(train_sentence_classes, FLAGS.batch_size, FLAGS.num_epochs, True)
         for batch in batches:

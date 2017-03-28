@@ -3,7 +3,7 @@ import tensorflow as tf
 
 
 class KimCNN(object):
-    def __init__(self, sequence_length, filter_sizes, num_filters, vocab_size,
+    def __init__(self, sequence_length, filter_sizes, num_filters,
                  pretrained_word_embeddings, sentence_embedding_size, l2_reg_lambda=0.0):
         # Placeholders for input, dropout and pretrained_embedding
         self.input_x = tf.placeholder(tf.int32, [None, sequence_length], name="input_x")
@@ -13,8 +13,9 @@ class KimCNN(object):
 
         word_embedding_size = len(pretrained_word_embeddings[0])
         # Embedding layer
-        word_embedding_w = tf.Variable(initial_value=tf.constant(0.0, shape=[vocab_size, word_embedding_size]),
-                                       trainable=False, name="word_embedding_w")
+        word_embedding_w = tf.Variable(
+            initial_value=tf.constant(0.0, shape=[len(pretrained_word_embeddings), word_embedding_size]),
+            trainable=False, name="word_embedding_w")
         word_embedding_init = word_embedding_w.assign(pretrained_word_embeddings)
 
         with tf.control_dependencies([word_embedding_init]):

@@ -49,7 +49,7 @@ def evaluate(sess, net, dev_sentence_classes, train_sentence_classes):
 
     # generate embeddings
     dev_embeddings = generate_embeddings(sess, net, dev_flatten_sentences)
-    train_embeddings = generate_embeddings(sess, net, train_sentence_classes)
+    train_embeddings = generate_embeddings(sess, net, train_flatten_sentences)
 
     avg_pos_num = 0
     min_pos_num = 0

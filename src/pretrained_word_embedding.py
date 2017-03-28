@@ -21,8 +21,6 @@ def load_word_embedding(embedding_path, padding_embedding):
             embeddings.append(embedding)
 
     embeddings = np.asarray(embeddings)
-    embeddings.shape
-
     return word_number_dict, embeddings
 
 # import time

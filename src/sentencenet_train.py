@@ -68,7 +68,6 @@ def main(argv=None):
         sequence_length=FLAGS.sequence_length,
         filter_sizes=list(map(int, FLAGS.filter_sizes.split(","))),
         num_filters=FLAGS.num_filters,
-        vocab_size=len(word_number_dict),
         pretrained_word_embeddings=word_embeddings,
         sentence_embedding_size=FLAGS.sentence_embedding_size,
         l2_reg_lambda=FLAGS.l2_reg_lambda)
@@ -135,7 +134,8 @@ def main(argv=None):
             # train step
             feed_dict = {
                 net.input_x: train_sentences,
-                net.dropout_keep_prob: FLAGS.dropout_keep_prob
+                net.dropout_keep_prob: FLAGS.dropout_keep_prob,
+                learning_rate_placeholder: FLAGS.learning_rate
             }
             _, step, summaries, current_triplet_loss, current_total_loss = sess.run(
                 [train_op, global_step, train_summary_op, triplet_loss, total_loss],
@@ -156,7 +156,7 @@ def main(argv=None):
                                                                            dev_sentence_classes,
                                                                            train_sentence_classes)
                 time_str = datetime.datetime.now().isoformat()
-                print ("\nEvaluation-{}: step {}, min_accuracy {.4f}, avg_accuracy {.4f}".
+                print ("\nEvaluation-{}: step {}, min_accuracy {:g}, avg_accuracy {:g}".
                        format(time_str, step, min_accuracy, avg_accuracy))
                 print("")
 
@@ -169,7 +169,7 @@ def main(argv=None):
                                                                    dev_sentence_classes,
                                                                    train_sentence_classes)
         time_str = datetime.datetime.now().isoformat()
-        print ("\nEvaluation-{}: step {}, min_accuracy {.4f}, avg_accuracy {.4f}".
+        print ("\nEvaluation-{}: step {}, min_accuracy {:g}, avg_accuracy {:g}".
                format(time_str, step, min_accuracy, avg_accuracy))
         print("")
 
@@ -187,7 +187,7 @@ def select_triplets(sess, net, sentence_classes, max_sentences_per_class, alpha)
 
     feed_dict = {
         net.input_x: np.asarray(flatten_sentences),
-        net.dropout_keep_prob: FLAGS.dropout_keep_prob
+        net.dropout_keep_prob: 1.
     }
     sentence_embeddings = sess.run(net.normalized_sentence_embeddings, feed_dict)
 
@@ -196,9 +196,10 @@ def select_triplets(sess, net, sentence_classes, max_sentences_per_class, alpha)
     num_anchor_pos = 0
     for length in lengths:
         for anchor_index in xrange(start_index, start_index + length - 1):
-            num_anchor_pos += 1
             neg_dists_sqr = np.sum(np.square(sentence_embeddings[anchor_index] - sentence_embeddings), 1)
             for pos_index in xrange(anchor_index + 1, start_index + length):
+                num_anchor_pos += 1
+
                 pos_dist_sqr = np.sum(np.square(sentence_embeddings[anchor_index] - sentence_embeddings[pos_index]))
                 neg_dists_sqr[start_index:start_index + length] = 1000.
                 all_negs = np.where(neg_dists_sqr - pos_dist_sqr < alpha)[0]

@@ -1,0 +1,7 @@
+.git
+.project
+.settings
+.idea
+*.iml
+*.iws
+*.ipr

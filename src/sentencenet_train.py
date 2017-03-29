@@ -30,6 +30,8 @@ tf.app.flags.DEFINE_integer("learning_rate_decay_epochs", 50,
 tf.app.flags.DEFINE_float("learning_rate_decay_factor", 1.0, "Learning rate decay factor (default: 1.0)")
 tf.app.flags.DEFINE_integer("word_embedding_size", 50, "Dimensionality of the word embedding (default: 50)")
 
+tf.app.flags.DEFINE_float("select_alpha", 0.2, "distance margin used to select the negative for triplet (default: 0.2)")
+
 # Training parameters
 tf.app.flags.DEFINE_integer("batch_size", 64, "Number of classes per batch (default: 64)")
 tf.app.flags.DEFINE_integer("max_sentences_per_class", 10, "Maximum number of sentences per class (default: 10)")
@@ -131,7 +133,7 @@ def main(argv=None):
                                                                 net=net,
                                                                 sentence_classes=batch,
                                                                 max_sentences_per_class=FLAGS.max_sentences_per_class,
-                                                                alpha=FLAGS.alpha)
+                                                                alpha=FLAGS.select_alpha)
             print ("num_anchor_pos, num_triplets = (%d, %d)" % (num_anchor_pos, len(triplet_sentences)))
 
             # flatten triplet_sentences

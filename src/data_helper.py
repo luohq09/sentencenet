@@ -13,7 +13,10 @@ def load_sentences(sentence_path,
     sentence_classes = []
     sentence_class = None
     sentences = []
-    trimmed = 0
+
+    # statistics info
+    num_trimmed = 0
+    num_sentences = 0
 
     # -1: initial; 0: new class; 1: loading sentences
     state = -1
@@ -31,12 +34,13 @@ def load_sentences(sentence_path,
                 state = 0
             elif state == 1:
                 # parse new sentence
+                num_sentences += 1
                 words = line.strip().split(" ")
                 sentence = np.zeros(fixed_sentence_length)
                 idx = 0
                 for word in words:
                     if idx >= fixed_sentence_length:
-                        trimmed += 1
+                        num_trimmed += 1
                         break
                     if word in word_number_dict:
                         sentence[idx] = word_number_dict[word]
@@ -49,7 +53,7 @@ def load_sentences(sentence_path,
             sentence_class.sentences = np.asarray(sentences)
             sentence_classes.append(sentence_class)
 
-        print("%s: trimmed: %d" % (sentence_path, trimmed))
+        print("%s:\nnum_sentences: %d, trimmed: %d" % (sentence_path, num_sentences, num_trimmed))
         return sentence_classes
 
 

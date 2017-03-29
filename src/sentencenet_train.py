@@ -16,6 +16,9 @@ tf.app.flags.DEFINE_string("pretrained_word_embedding_file", "", "Data source fo
 tf.app.flags.DEFINE_string("train_data_file", "", "Data source for the train data")
 tf.app.flags.DEFINE_string("dev_data_file", "", "Data source for the dev data")
 
+tf.app.flags.DEFINE_string("model_restore_dir", None, "Directory containing checkpoints used to restore"
+                                                      " the model (default None)")
+
 # Model Hyperparameters
 tf.app.flags.DEFINE_float("alpha", 0.2, "Positive to negative triplet distance margin (default: 0.2)")
 tf.app.flags.DEFINE_integer("sequence_length", 20, "Fixed length of sentence (default: 20)")
@@ -52,6 +55,7 @@ print("\nParameters:")
 for attr, value in sorted(FLAGS.__flags.items()):
     print("{}={}".format(attr.upper(), value))
 print("")
+
 
 def main(argv=None):
     word_number_dict, word_embeddings = pretrained_word_embedding.load_word_embedding(
@@ -119,10 +123,13 @@ def main(argv=None):
         os.makedirs(checkpoint_dir)
     saver = tf.train.Saver(tf.global_variables(), max_to_keep=FLAGS.num_checkpoints)
 
-    # Initialize all variables
-    sess.run(tf.global_variables_initializer())
-
-    sess.run(net.word_embedding_init)
+    if FLAGS.model_restore_dir is None:
+        # Initialize all variables
+        sess.run(tf.global_variables_initializer())
+        sess.run(net.word_embedding_init)
+    else:
+        checkpoint_file_path = tf.train.latest_checkpoint(FLAGS.model_restore_dir)
+        saver.restore(sess, checkpoint_file_path)
 
     with sess.as_default():
         batches = data_helper.batch_iter(train_sentence_classes, FLAGS.batch_size, FLAGS.num_epochs, True)

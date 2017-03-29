@@ -45,6 +45,11 @@ tf.app.flags.DEFINE_string("out_dir", os.path.curdir,
 
 FLAGS = tf.app.flags.FLAGS
 
+FLAGS._parse_flags()
+print("\nParameters:")
+for attr, value in sorted(FLAGS.__flags.items()):
+    print("{}={}".format(attr.upper(), value))
+print("")
 
 def main(argv=None):
     word_number_dict, word_embeddings = pretrained_word_embedding.load_word_embedding(

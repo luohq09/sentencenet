@@ -49,7 +49,7 @@ def load_sentences(sentence_path,
             sentence_class.sentences = np.asarray(sentences)
             sentence_classes.append(sentence_class)
 
-        print("trimmed: %d" % trimmed)
+        print("%s: trimmed: %d" % (sentence_path, trimmed))
         return sentence_classes
 
 

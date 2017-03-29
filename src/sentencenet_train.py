@@ -44,6 +44,8 @@ tf.app.flags.DEFINE_integer("checkpoint_every", 100, "Save model after this many
 tf.app.flags.DEFINE_integer("num_checkpoints", 5, "Number of checkpoints to store (default: 5)")
 tf.app.flags.DEFINE_string("optimizer", "ADAGRAD", "The optimization algorithm to use: ['ADAGRAD', 'ADADELTA',"
                                                    " 'ADAM', 'RMSPROP', 'MOM'] (default: 'ADAGRAD')")
+tf.app.flags.DEFINE_boolean("word_embedding_static", True,
+                            "Whether to keep word embeddings static during training (default: True)")
 
 tf.app.flags.DEFINE_string("out_dir", os.path.curdir,
                            "Output directory for model and summaries (default: 'current dir')")
@@ -81,6 +83,7 @@ def main(argv=None):
         num_filters=FLAGS.num_filters,
         pretrained_word_embeddings=word_embeddings,
         sentence_embedding_size=FLAGS.sentence_embedding_size,
+        word_embedding_static=FLAGS.word_embedding_static,
         l2_reg_lambda=FLAGS.l2_reg_lambda)
 
     # Define Training procedure
@@ -156,6 +159,7 @@ def main(argv=None):
             _, step, summaries, current_triplet_loss, current_total_loss = sess.run(
                 [train_op, global_step, train_summary_op, triplet_loss, total_loss],
                 feed_dict)
+
             time_str = datetime.datetime.now().isoformat()
             print("{}: step {}, triplet_loss {:g}, total_loss {:g}".format(
                 time_str, step, current_triplet_loss, current_total_loss))

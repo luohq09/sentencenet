@@ -146,39 +146,40 @@ def main(argv=None):
                                                                 alpha=FLAGS.select_alpha)
             print ("num_anchor_pos, num_triplets = (%d, %d)" % (num_anchor_pos, len(triplet_sentences)))
 
-            # flatten triplet_sentences
-            train_sentences = list(itertools.chain(*triplet_sentences))
-            train_sentences = np.asarray(train_sentences)
+            if len(triplet_sentences) > 0:
+                # flatten triplet_sentences
+                train_sentences = list(itertools.chain(*triplet_sentences))
+                train_sentences = np.asarray(train_sentences)
 
-            # train step
-            feed_dict = {
-                net.input_x: train_sentences,
-                net.dropout_keep_prob: FLAGS.dropout_keep_prob,
-                learning_rate_placeholder: FLAGS.learning_rate
-            }
-            _, step, summaries, current_triplet_loss, current_total_loss = sess.run(
-                [train_op, global_step, train_summary_op, triplet_loss, total_loss],
-                feed_dict)
+                # train step
+                feed_dict = {
+                    net.input_x: train_sentences,
+                    net.dropout_keep_prob: FLAGS.dropout_keep_prob,
+                    learning_rate_placeholder: FLAGS.learning_rate
+                }
+                _, step, summaries, current_triplet_loss, current_total_loss = sess.run(
+                    [train_op, global_step, train_summary_op, triplet_loss, total_loss],
+                    feed_dict)
 
-            time_str = datetime.datetime.now().isoformat()
-            print("{}: step {}, triplet_loss {:g}, total_loss {:g}".format(
-                time_str, step, current_triplet_loss, current_total_loss))
-            train_summary_writer.add_summary(summaries, step)
-
-            # save checkpoint
-            if int(step) % FLAGS.checkpoint_every == 0:
-                path = saver.save(sess, checkpoint_prefix, global_step=step)
-                print("Saved model checkpoint to {}\n".format(path))
-
-            # evaluate
-            if int(step) % FLAGS.evaluate_every == 0:
-                min_accuracy, avg_accuracy = sentencenet_evaluate.evaluate(sess, net,
-                                                                           dev_sentence_classes,
-                                                                           train_sentence_classes)
                 time_str = datetime.datetime.now().isoformat()
-                print ("\nEvaluation-{}: step {}, min_accuracy {:g}, avg_accuracy {:g}".
-                       format(time_str, step, min_accuracy, avg_accuracy))
-                print("")
+                print("{}: step {}, triplet_loss {:g}, total_loss {:g}".format(
+                    time_str, step, current_triplet_loss, current_total_loss))
+                train_summary_writer.add_summary(summaries, step)
+
+                # save checkpoint
+                if int(step) % FLAGS.checkpoint_every == 0:
+                    path = saver.save(sess, checkpoint_prefix, global_step=step)
+                    print("Saved model checkpoint to {}\n".format(path))
+
+                # evaluate
+                if int(step) % FLAGS.evaluate_every == 0:
+                    min_accuracy, avg_accuracy = sentencenet_evaluate.evaluate(sess, net,
+                                                                               dev_sentence_classes,
+                                                                               train_sentence_classes)
+                    time_str = datetime.datetime.now().isoformat()
+                    print ("\nEvaluation-{}: step {}, min_accuracy {:g}, avg_accuracy {:g}".
+                           format(time_str, step, min_accuracy, avg_accuracy))
+                    print("")
 
         # final save and evaluate
         step = tf.train.global_step(sess, global_step)

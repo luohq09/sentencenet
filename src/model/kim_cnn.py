@@ -50,9 +50,8 @@ class KimCNN(object):
                     name="pool")
                 pooled_outputs.append(pooled)
 
-                if l2_reg_lambda > 0.0:
-                    self.l2_loss += tf.nn.l2_loss(weight)
-                    self.l2_loss += tf.nn.l2_loss(bias)
+                self.l2_loss += tf.nn.l2_loss(weight)
+                self.l2_loss += tf.nn.l2_loss(bias)
 
         # Combine all the pooled features
         num_filters_total = num_filters * len(filter_sizes)
@@ -73,6 +72,5 @@ class KimCNN(object):
             self.normalized_sentence_embeddings = tf.nn.l2_normalize(
                 sentence_embeddings, 1, 1e-10, name="normalized_sentence_embeddings")
 
-            if l2_reg_lambda > 0.0:
-                self.l2_loss += tf.nn.l2_loss(weight)
-                self.l2_loss += tf.nn.l2_loss(bias)
+            self.l2_loss += tf.nn.l2_loss(weight)
+            self.l2_loss += tf.nn.l2_loss(bias)

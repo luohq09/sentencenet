@@ -83,14 +83,13 @@ def main(argv=None):
         num_filters=FLAGS.num_filters,
         pretrained_word_embeddings=word_embeddings,
         sentence_embedding_size=FLAGS.sentence_embedding_size,
-        word_embedding_static=FLAGS.word_embedding_static,
-        l2_reg_lambda=FLAGS.l2_reg_lambda)
+        word_embedding_static=FLAGS.word_embedding_static)
 
     # Define Training procedure
     anchor, positive, negative = tf.unstack(
         tf.reshape(net.normalized_sentence_embeddings, [-1, 3, FLAGS.sentence_embedding_size]), 3, 1)
     triplet_loss = sentencenet.triplet_loss(anchor, positive, negative, FLAGS.alpha)
-    total_loss = triplet_loss + net.l2_loss
+    total_loss = triplet_loss + net.l2_loss * FLAGS.l2_reg_lambda
     optimizer = sentencenet.get_optimizer(FLAGS.optimizer, learning_rate)
     grads_and_vars = optimizer.compute_gradients(total_loss)
     train_op = optimizer.apply_gradients(grads_and_vars=grads_and_vars, global_step=global_step)

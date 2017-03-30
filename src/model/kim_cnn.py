@@ -3,8 +3,13 @@ import tensorflow as tf
 
 
 class KimCNN(object):
-    def __init__(self, sequence_length, filter_sizes, num_filters, pretrained_word_embeddings,
-                 sentence_embedding_size, word_embedding_static, l2_reg_lambda=0.0):
+    def __init__(self,
+                 sequence_length,
+                 filter_sizes,
+                 num_filters,
+                 pretrained_word_embeddings,
+                 sentence_embedding_size,
+                 word_embedding_static):
         # Placeholders for input, dropout and pretrained_embedding
         self.input_x = tf.placeholder(tf.int32, [None, sequence_length], name="input_x")
         self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
@@ -71,4 +76,3 @@ class KimCNN(object):
             if l2_reg_lambda > 0.0:
                 self.l2_loss += tf.nn.l2_loss(weight)
                 self.l2_loss += tf.nn.l2_loss(bias)
-                self.l2_loss *= l2_reg_lambda

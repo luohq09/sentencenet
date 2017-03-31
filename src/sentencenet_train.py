@@ -11,52 +11,53 @@ import data_helper
 import sentencenet
 import sentencenet_evaluate
 
-# Data loading params
-tf.app.flags.DEFINE_string("pretrained_word_embedding_file", "", "Data source for the pretrained word embeddings")
-tf.app.flags.DEFINE_string("train_data_file", "", "Data source for the train data")
-tf.app.flags.DEFINE_string("dev_data_file", "", "Data source for the dev data")
+if __name__ == '__main__':
+    # Data loading params
+    tf.app.flags.DEFINE_string("pretrained_word_embedding_file", "", "Data source for the pretrained word embeddings")
+    tf.app.flags.DEFINE_string("train_data_file", "", "Data source for the train data")
+    tf.app.flags.DEFINE_string("dev_data_file", "", "Data source for the dev data")
 
-tf.app.flags.DEFINE_string("model_restore_dir", None, "Directory containing checkpoints used to restore"
-                                                      " the model (default None)")
+    tf.app.flags.DEFINE_string("model_restore_dir", None, "Directory containing checkpoints used to restore"
+                                                          " the model (default None)")
 
-# Model Hyperparameters
-tf.app.flags.DEFINE_float("alpha", 0.2, "Positive to negative triplet distance margin (default: 0.2)")
-tf.app.flags.DEFINE_integer("sequence_length", 20, "Fixed length of sentence (default: 20)")
-tf.app.flags.DEFINE_integer("sentence_embedding_size", 128, "Dimensionality of the sentence embedding (default: 128)")
-tf.app.flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated filter sizes (default: '3,4,5')")
-tf.app.flags.DEFINE_integer("num_filters", 128, "Number of filters per filter size (default: 128)")
-tf.app.flags.DEFINE_float("dropout_keep_prob", 0.5, "Dropout keep probability (default: 0.5)")
-tf.app.flags.DEFINE_float("l2_reg_lambda", 0.0, "L2 regularization lambda (default: 0.0)")
-tf.app.flags.DEFINE_float("learning_rate", 0.1, "Initial learning rate (default: 0.1)")
-tf.app.flags.DEFINE_integer("learning_rate_decay_epochs", 50,
-                            "Number of epochs between learning rate decay (default: 50)")
-tf.app.flags.DEFINE_float("learning_rate_decay_factor", 1.0, "Learning rate decay factor (default: 1.0)")
-tf.app.flags.DEFINE_integer("word_embedding_size", 50, "Dimensionality of the word embedding (default: 50)")
+    # Model Hyperparameters
+    tf.app.flags.DEFINE_float("alpha", 0.2, "Positive to negative triplet distance margin (default: 0.2)")
+    tf.app.flags.DEFINE_integer("sequence_length", 20, "Fixed length of sentence (default: 20)")
+    tf.app.flags.DEFINE_integer("sentence_embedding_size", 128, "Dimensionality of the sentence embedding (default: 128)")
+    tf.app.flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated filter sizes (default: '3,4,5')")
+    tf.app.flags.DEFINE_integer("num_filters", 128, "Number of filters per filter size (default: 128)")
+    tf.app.flags.DEFINE_float("dropout_keep_prob", 0.5, "Dropout keep probability (default: 0.5)")
+    tf.app.flags.DEFINE_float("l2_reg_lambda", 0.0, "L2 regularization lambda (default: 0.0)")
+    tf.app.flags.DEFINE_float("learning_rate", 0.1, "Initial learning rate (default: 0.1)")
+    tf.app.flags.DEFINE_integer("learning_rate_decay_epochs", 50,
+                                "Number of epochs between learning rate decay (default: 50)")
+    tf.app.flags.DEFINE_float("learning_rate_decay_factor", 1.0, "Learning rate decay factor (default: 1.0)")
+    tf.app.flags.DEFINE_integer("word_embedding_size", 50, "Dimensionality of the word embedding (default: 50)")
 
-tf.app.flags.DEFINE_float("select_alpha", 0.2, "distance margin used to select the negative for triplet (default: 0.2)")
+    tf.app.flags.DEFINE_float("select_alpha", 0.2, "distance margin used to select the negative for triplet (default: 0.2)")
 
-# Training parameters
-tf.app.flags.DEFINE_integer("batch_size", 64, "Number of classes per batch (default: 64)")
-tf.app.flags.DEFINE_integer("max_sentences_per_class", 10, "Maximum number of sentences per class (default: 10)")
-tf.app.flags.DEFINE_integer("num_epochs", 200, "Number of training epochs (default: 200)")
-tf.app.flags.DEFINE_integer("evaluate_every", 100, "Evaluate model on dev set after this many steps (default: 100)")
-tf.app.flags.DEFINE_integer("checkpoint_every", 100, "Save model after this many steps (default: 100)")
-tf.app.flags.DEFINE_integer("num_checkpoints", 5, "Number of checkpoints to store (default: 5)")
-tf.app.flags.DEFINE_string("optimizer", "ADAGRAD", "The optimization algorithm to use: ['ADAGRAD', 'ADADELTA',"
-                                                   " 'ADAM', 'RMSPROP', 'MOM'] (default: 'ADAGRAD')")
-tf.app.flags.DEFINE_boolean("word_embedding_static", True,
-                            "Whether to keep word embeddings static during training (default: True)")
+    # Training parameters
+    tf.app.flags.DEFINE_integer("batch_size", 64, "Number of classes per batch (default: 64)")
+    tf.app.flags.DEFINE_integer("max_sentences_per_class", 10, "Maximum number of sentences per class (default: 10)")
+    tf.app.flags.DEFINE_integer("num_epochs", 200, "Number of training epochs (default: 200)")
+    tf.app.flags.DEFINE_integer("evaluate_every", 100, "Evaluate model on dev set after this many steps (default: 100)")
+    tf.app.flags.DEFINE_integer("checkpoint_every", 100, "Save model after this many steps (default: 100)")
+    tf.app.flags.DEFINE_integer("num_checkpoints", 5, "Number of checkpoints to store (default: 5)")
+    tf.app.flags.DEFINE_string("optimizer", "ADAGRAD", "The optimization algorithm to use: ['ADAGRAD', 'ADADELTA',"
+                                                       " 'ADAM', 'RMSPROP', 'MOM'] (default: 'ADAGRAD')")
+    tf.app.flags.DEFINE_boolean("word_embedding_static", True,
+                                "Whether to keep word embeddings static during training (default: True)")
 
-tf.app.flags.DEFINE_string("out_dir", os.path.curdir,
-                           "Output directory for model and summaries (default: 'current dir')")
+    tf.app.flags.DEFINE_string("out_dir", os.path.curdir,
+                               "Output directory for model and summaries (default: 'current dir')")
 
-FLAGS = tf.app.flags.FLAGS
+    FLAGS = tf.app.flags.FLAGS
 
-FLAGS._parse_flags()
-print("\nParameters:")
-for attr, value in sorted(FLAGS.__flags.items()):
-    print("{}={}".format(attr.upper(), value))
-print("")
+    FLAGS._parse_flags()
+    print("\nParameters:")
+    for attr, value in sorted(FLAGS.__flags.items()):
+        print("{}={}".format(attr.upper(), value))
+    print("")
 
 
 def main(argv=None):

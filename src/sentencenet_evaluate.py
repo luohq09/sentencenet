@@ -6,23 +6,23 @@ from model.kim_cnn import KimCNN
 import pretrained_word_embedding
 import data_helper
 
+if __name__ == '__main__':
+    tf.app.flags.DEFINE_integer("top_k", 1, "Select top k candidates (default: 1)")
 
-tf.app.flags.DEFINE_integer("top_k", 1, "Select top k candidates (default: 1)")
+    # Data loading params
+    tf.app.flags.DEFINE_string("pretrained_word_embedding_file", "", "Data source for the pretrained word embeddings")
+    tf.app.flags.DEFINE_string("train_data_file", "", "Data source for the train data")
+    tf.app.flags.DEFINE_string("dev_data_file", "", "Data source for the dev data")
+    tf.app.flags.DEFINE_string("model_restore_dir", None,
+                               "Directory containing checkpoints used to restore the model (default None)")
 
-# Data loading params
-tf.app.flags.DEFINE_string("pretrained_word_embedding_file", "", "Data source for the pretrained word embeddings")
-tf.app.flags.DEFINE_string("train_data_file", "", "Data source for the train data")
-tf.app.flags.DEFINE_string("dev_data_file", "", "Data source for the dev data")
-tf.app.flags.DEFINE_string("model_restore_dir", None,
-                           "Directory containing checkpoints used to restore the model (default None)")
+    tf.app.flags.DEFINE_integer("sequence_length", 20, "Fixed length of sentence (default: 20)")
+    tf.app.flags.DEFINE_integer("sentence_embedding_size", 128, "Dimensionality of the sentence embedding (default: 128)")
+    tf.app.flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated filter sizes (default: '3,4,5')")
+    tf.app.flags.DEFINE_integer("num_filters", 128, "Number of filters per filter size (default: 128)")
+    tf.app.flags.DEFINE_integer("word_embedding_size", 50, "Dimensionality of the word embedding (default: 50)")
 
-tf.app.flags.DEFINE_integer("sequence_length", 20, "Fixed length of sentence (default: 20)")
-tf.app.flags.DEFINE_integer("sentence_embedding_size", 128, "Dimensionality of the sentence embedding (default: 128)")
-tf.app.flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated filter sizes (default: '3,4,5')")
-tf.app.flags.DEFINE_integer("num_filters", 128, "Number of filters per filter size (default: 128)")
-tf.app.flags.DEFINE_integer("word_embedding_size", 50, "Dimensionality of the word embedding (default: 50)")
-
-FLAGS = tf.app.flags.FLAGS
+    FLAGS = tf.app.flags.FLAGS
 
 
 def flatten_sentences(sentence_classes):

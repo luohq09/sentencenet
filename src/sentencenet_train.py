@@ -23,7 +23,8 @@ if __name__ == '__main__':
     # Model Hyperparameters
     tf.app.flags.DEFINE_float("alpha", 0.2, "Positive to negative triplet distance margin (default: 0.2)")
     tf.app.flags.DEFINE_integer("sequence_length", 20, "Fixed length of sentence (default: 20)")
-    tf.app.flags.DEFINE_integer("sentence_embedding_size", 128, "Dimensionality of the sentence embedding (default: 128)")
+    tf.app.flags.DEFINE_integer("sentence_embedding_size", 128,
+                                "Dimensionality of the sentence embedding (default: 128)")
     tf.app.flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated filter sizes (default: '3,4,5')")
     tf.app.flags.DEFINE_integer("num_filters", 128, "Number of filters per filter size (default: 128)")
     tf.app.flags.DEFINE_float("dropout_keep_prob", 0.5, "Dropout keep probability (default: 0.5)")
@@ -34,7 +35,8 @@ if __name__ == '__main__':
     tf.app.flags.DEFINE_float("learning_rate_decay_factor", 1.0, "Learning rate decay factor (default: 1.0)")
     tf.app.flags.DEFINE_integer("word_embedding_size", 50, "Dimensionality of the word embedding (default: 50)")
 
-    tf.app.flags.DEFINE_float("select_alpha", 0.2, "distance margin used to select the negative for triplet (default: 0.2)")
+    tf.app.flags.DEFINE_float("select_alpha", 0.2,
+                              "distance margin used to select the negative for triplet (default: 0.2)")
 
     # Training parameters
     tf.app.flags.DEFINE_integer("batch_size", 64, "Number of classes per batch (default: 64)")

@@ -17,7 +17,8 @@ if __name__ == '__main__':
                                "Directory containing checkpoints used to restore the model (default None)")
 
     tf.app.flags.DEFINE_integer("sequence_length", 20, "Fixed length of sentence (default: 20)")
-    tf.app.flags.DEFINE_integer("sentence_embedding_size", 128, "Dimensionality of the sentence embedding (default: 128)")
+    tf.app.flags.DEFINE_integer("sentence_embedding_size", 128,
+                                "Dimensionality of the sentence embedding (default: 128)")
     tf.app.flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated filter sizes (default: '3,4,5')")
     tf.app.flags.DEFINE_integer("num_filters", 128, "Number of filters per filter size (default: 128)")
     tf.app.flags.DEFINE_integer("word_embedding_size", 50, "Dimensionality of the word embedding (default: 50)")

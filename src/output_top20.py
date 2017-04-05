@@ -28,6 +28,12 @@ if __name__ == '__main__':
 
     FLAGS = tf.app.flags.FLAGS
 
+    FLAGS._parse_flags()
+    print("\nParameters:")
+    for attr, value in sorted(FLAGS.__flags.items()):
+        print("{}={}".format(attr.upper(), value))
+    print("")
+
 
 def load_dev_sentences(sentence_path, word_number_dict, fixed_sentence_length):
     sentences = []
@@ -97,8 +103,12 @@ def main(argv=None):
             class_dists = sorted(class_dists, cmp=lambda x, y: cmp(x[1], y[1]))
 
             # write to the output file
-            out_fn.write("<question=\"{}\";id=null;entity=>\nquestion:\n{}semantics:\n"
+            out_fn.write("<question=\"{}\";id=null;entity=>\nquestion:\n{}\nsemantics:\n"
                          .format(dev_sentences[i][0], dev_sentences[i][0]))
             for class_dist in class_dists:
                 out_fn.write("null\t###\t{}\t###\t{:g}\n".format(class_dist[0], class_dist[1]))
             out_fn.write("\n")
+
+
+if __name__ == '__main__':
+    tf.app.run()

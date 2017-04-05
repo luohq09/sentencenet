@@ -84,6 +84,7 @@ def main(argv=None):
         sess.run(net.word_embedding_init)
     else:
         checkpoint_file_path = tf.train.latest_checkpoint(FLAGS.model_restore_dir)
+        print("checkpoint_file_path: {}".format(checkpoint_file_path))
         saver.restore(sess, checkpoint_file_path)
 
     train_flatten_sentences = evaluate.flatten_sentences(train_sentence_classes)

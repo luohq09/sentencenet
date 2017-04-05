@@ -70,7 +70,7 @@ def classify(dev_embedding, train_embeddings, train_sentence_classes, top_k=1):
         if avg_dist < min_avg_dists[arg_max_index]:
             min_avg_dists[arg_max_index] = avg_dist
             avg_dist_class_names[arg_max_index] = train_sentence_class.name
-    return min_dist_class_names, avg_dist_class_names
+    return min_dist_class_names, min_min_dists, avg_dist_class_names, min_avg_dists
 
 
 def evaluate(sess, net, dev_sentence_classes, train_sentence_classes, top_k=1):
@@ -87,7 +87,7 @@ def evaluate(sess, net, dev_sentence_classes, train_sentence_classes, top_k=1):
     index = 0
     for dev_sentence_class in dev_sentence_classes:
         for i in xrange(len(dev_sentence_class.sentences)):
-            min_dist_class_names, avg_dist_class_names = classify(
+            min_dist_class_names, _, avg_dist_class_names, _ = classify(
                 dev_embeddings[index], train_embeddings, train_sentence_classes, top_k)
             index += 1
             if dev_sentence_class.name in min_dist_class_names:

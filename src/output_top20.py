@@ -97,17 +97,17 @@ def main(argv=None):
 
     with open(FLAGS.output_file, "w") as out_fn:
         for i in xrange(len(dev_sentences)):
-            min_dist_class_names, min_min_dists, _, _ = evaluate.classify(
+            min_dist_class_names, min_dist_class_negatives, min_min_dists, _, _, _ = evaluate.classify(
                 dev_embeddings[i], train_embeddings, train_sentence_classes, FLAGS.top_k)
-            class_dists = [(min_dist_class_names[index], min_min_dists[index])
+            class_dists = [(min_dist_class_names[index], min_dist_class_negatives[index], min_min_dists[index])
                            for index in xrange(len(min_dist_class_names))]
-            class_dists = sorted(class_dists, cmp=lambda x, y: cmp(x[1], y[1]))
+            class_dists = sorted(class_dists, cmp=lambda x, y: cmp(x[2], y[2]))
 
             # write to the output file
             out_fn.write("<question=\"{}\";id=null;entity=>\nquestion:\n{}\nsemantics:\n"
                          .format(dev_sentences[i][0], dev_sentences[i][0]))
             for class_dist in class_dists:
-                out_fn.write("null\t###\t{}\t###\t{:g}\n".format(class_dist[0], class_dist[1]))
+                out_fn.write("{}\t###\t{}\t###\t{:g}\n".format(class_dist[1], class_dist[0], class_dist[2]))
             out_fn.write("\n")
 
 

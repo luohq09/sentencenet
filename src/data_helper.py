@@ -2,9 +2,10 @@ import numpy as np
 
 
 class SentenceClass:
-    def __init__(self, name, sentences):
+    def __init__(self, name, sentences, negative=None):
         self.name = name
         self.sentences = sentences
+        self.negative = negative
 
 
 def load_sentences(sentence_path,
@@ -18,21 +19,11 @@ def load_sentences(sentence_path,
     num_trimmed = 0
     num_sentences = 0
 
-    # -1: initial; 0: new class; 1: loading sentences
+    # -1: initial; 0: new class; 1: loading sentences; 2: loading "negative"
     state = -1
     with open(sentence_path) as fn:
         for line in fn:
-            if line.startswith("<semantic"):
-                # new class
-                if not (sentence_class is None) and len(sentences) > 0:
-                    sentence_class.sentences = np.asarray(sentences)
-                    sentence_classes.append(sentence_class)
-
-                class_name = line.split(";")[1].split("=")[1].strip()
-                sentences = []
-                sentence_class = SentenceClass(class_name, None)
-                state = 0
-            elif state == 1:
+            if state == 1:
                 # parse new sentence
                 num_sentences += 1
                 words = line.strip().split(" ")
@@ -46,8 +37,23 @@ def load_sentences(sentence_path,
                         sentence[idx] = word_number_dict[word]
                         idx += 1
                 sentences.append(sentence)
-            elif state == 0 and line.startswith("questions:"):
+            elif state == 2:
+                sentence_class.negative = line
+                state = 0
+            elif line.startswith("<semantic"):
+                # new class
+                if not (sentence_class is None) and len(sentences) > 0:
+                    sentence_class.sentences = np.asarray(sentences)
+                    sentence_classes.append(sentence_class)
+
+                class_name = line.split(";")[1].split("=")[1].strip()
+                sentences = []
+                sentence_class = SentenceClass(class_name, None, None)
+                state = 0
+            elif line.startswith("questions:"):
                 state = 1
+            elif line.startswith("negative:"):
+                state = 2
 
         if not (sentence_class is None) and len(sentences) > 0:
             sentence_class.sentences = np.asarray(sentences)

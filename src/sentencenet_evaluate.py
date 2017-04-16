@@ -49,7 +49,9 @@ def classify(dev_embedding, train_embeddings, train_sentence_classes, top_k=1):
     min_min_dists = np.full(top_k, 10000.)
     min_avg_dists = np.full(top_k, 10000.)
     min_dist_class_names = np.empty(top_k, 'a128')
+    min_dist_class_negatives = np.empty(top_k, 'a128')
     avg_dist_class_names = np.empty(top_k, 'a128')
+    avg_dist_class_negatives = np.empty(top_k, 'a128')
     for train_sentence_class in train_sentence_classes:
         min_dist = 1000.
         avg_dist = 0.
@@ -65,12 +67,15 @@ def classify(dev_embedding, train_embeddings, train_sentence_classes, top_k=1):
         if min_dist < min_min_dists[arg_max_index]:
             min_min_dists[arg_max_index] = min_dist
             min_dist_class_names[arg_max_index] = train_sentence_class.name
+            min_dist_class_negatives[arg_max_index] = train_sentence_class.negative
 
         arg_max_index = np.argmax(min_avg_dists)
         if avg_dist < min_avg_dists[arg_max_index]:
             min_avg_dists[arg_max_index] = avg_dist
             avg_dist_class_names[arg_max_index] = train_sentence_class.name
-    return min_dist_class_names, min_min_dists, avg_dist_class_names, min_avg_dists
+            avg_dist_class_negatives[arg_max_index] = train_sentence_class.negative
+    return min_dist_class_names, min_dist_class_negatives, min_min_dists,\
+        avg_dist_class_names, avg_dist_class_negatives, min_avg_dists,
 
 
 def evaluate(sess, net, dev_sentence_classes, train_sentence_classes, top_k=1):
@@ -87,7 +92,7 @@ def evaluate(sess, net, dev_sentence_classes, train_sentence_classes, top_k=1):
     index = 0
     for dev_sentence_class in dev_sentence_classes:
         for i in xrange(len(dev_sentence_class.sentences)):
-            min_dist_class_names, _, avg_dist_class_names, _ = classify(
+            min_dist_class_names, _, _, avg_dist_class_names, _, _ = classify(
                 dev_embeddings[index], train_embeddings, train_sentence_classes, top_k)
             index += 1
             if dev_sentence_class.name in min_dist_class_names:

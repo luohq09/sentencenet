@@ -48,7 +48,7 @@ def load_sentences(sentence_path,
                         idx += 1
                 sentences.append(sentence)
             elif state == 2:
-                sentence_class.negative = line
+                sentence_class.negative = line.strip()
                 state = 0
             elif line.startswith("questions:"):
                 state = 1

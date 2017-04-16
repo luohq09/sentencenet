@@ -23,7 +23,17 @@ def load_sentences(sentence_path,
     state = -1
     with open(sentence_path) as fn:
         for line in fn:
-            if state == 1:
+            if line.startswith("<semantic"):
+                # new class
+                if not (sentence_class is None) and len(sentences) > 0:
+                    sentence_class.sentences = np.asarray(sentences)
+                    sentence_classes.append(sentence_class)
+
+                class_name = line.split(";")[1].split("=")[1].strip()
+                sentences = []
+                sentence_class = SentenceClass(class_name, None, None)
+                state = 0
+            elif state == 1:
                 # parse new sentence
                 num_sentences += 1
                 words = line.strip().split(" ")
@@ -39,16 +49,6 @@ def load_sentences(sentence_path,
                 sentences.append(sentence)
             elif state == 2:
                 sentence_class.negative = line
-                state = 0
-            elif line.startswith("<semantic"):
-                # new class
-                if not (sentence_class is None) and len(sentences) > 0:
-                    sentence_class.sentences = np.asarray(sentences)
-                    sentence_classes.append(sentence_class)
-
-                class_name = line.split(";")[1].split("=")[1].strip()
-                sentences = []
-                sentence_class = SentenceClass(class_name, None, None)
                 state = 0
             elif line.startswith("questions:"):
                 state = 1

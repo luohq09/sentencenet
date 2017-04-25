@@ -1,16 +1,16 @@
 import numpy as np
 
-class_dict = {}
-
 
 class SentenceClass:
+    class_dict = {}
+
     def __init__(self, name, sentences, negative=None):
         self.name = name
-        if name in class_dict:
-            self.class_no = class_dict[name]
+        if name in SentenceClass.class_dict:
+            self.class_no = SentenceClass.class_dict[name]
         else:
-            self.class_no = len(class_dict)
-            class_dict[name] = self.class_no
+            self.class_no = len(SentenceClass.class_dict)
+            SentenceClass.class_dict[name] = self.class_no
         self.sentences = sentences
         self.negative = negative
 
@@ -74,17 +74,48 @@ def batch_iter(sentence_classes, batch_size, num_epochs, shuffle=True):
     sentence_classes = np.array(sentence_classes)
     sentence_classes_size = len(sentence_classes)
     num_batches_per_epoch = int((sentence_classes_size-1)/batch_size) + 1
-    for epoch in range(num_epochs):
+    for epoch in xrange(num_epochs):
         # Shuffle the data at each epoch
         if shuffle:
             shuffle_indices = np.random.permutation(np.arange(sentence_classes_size))
-            shuffled_sentence_classes = sentence_classes[shuffle_indices]
+            shuffle_sentence_classes = sentence_classes[shuffle_indices]
         else:
-            shuffled_sentence_classes = sentence_classes
-        for batch_num in range(num_batches_per_epoch):
+            shuffle_sentence_classes = sentence_classes
+        for batch_num in xrange(num_batches_per_epoch):
             start_index = batch_num * batch_size
             end_index = min((batch_num + 1) * batch_size, sentence_classes_size)
-            yield shuffled_sentence_classes[start_index:end_index]
+            yield shuffle_sentence_classes[start_index:end_index]
+
+
+def flatten_sentence_classes(sentence_classes):
+    sentences = []
+    labels = []
+    for sentence_class in sentence_classes:
+        for sentence in sentence_class.sentences:
+            sentences.append(sentence)
+            labels.append(sentence_class.class_no)
+
+    return sentences, labels
+
+
+def flatten_batch_iter(sentences, labels, batch_size, num_epochs, shuffle=True):
+    sentences = np.array(sentences)
+    labels = np.array(labels)
+    sentences_size = len(sentences)
+    num_batches_per_epoch = int((sentences_size-1)/batch_size) + 1
+
+    for epoch in xrange(num_epochs):
+        if shuffle:
+            shuffle_indices = np.random.permutation(np.arange(sentences_size))
+            shuffle_sentences = sentences[shuffle_indices]
+            shuffle_labels = labels[shuffle_indices]
+        else:
+            shuffle_sentences = sentences
+            shuffle_labels = labels
+        for batch_num in xrange(num_batches_per_epoch):
+            start_index = batch_num * batch_size
+            end_index = min((batch_num + 1) * batch_size, sentences_size)
+            yield shuffle_sentences[start_index:end_index], shuffle_labels[start_index:end_index]
 
 
 # import time

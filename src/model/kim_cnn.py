@@ -68,9 +68,9 @@ class KimCNN(object):
                 initial_value=tf.truncated_normal([num_filters_total, sentence_embedding_size], stddev=0.1),
                 name="weight")
             bias = tf.Variable(tf.constant(0.1, shape=[sentence_embedding_size]), name="bias")
-            sentence_embeddings = tf.nn.xw_plus_b(h_drop, weight, bias, name="sentence_embeddings")
+            self.sentence_embeddings = tf.nn.xw_plus_b(h_drop, weight, bias, name="sentence_embeddings")
             self.normalized_sentence_embeddings = tf.nn.l2_normalize(
-                sentence_embeddings, 1, 1e-10, name="normalized_sentence_embeddings")
+                self.sentence_embeddings, 1, 1e-10, name="normalized_sentence_embeddings")
 
             self.l2_loss += tf.nn.l2_loss(weight)
             self.l2_loss += tf.nn.l2_loss(bias)

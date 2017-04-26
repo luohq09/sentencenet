@@ -64,6 +64,7 @@ def main(argv=None):
     word_number_dict, word_embeddings = pretrained_word_embedding.load_word_embedding(
         FLAGS.pretrained_word_embedding_file, np.zeros(FLAGS.word_embedding_size))
     train_sentence_classes = data_helper.load_sentences(FLAGS.train_data_file, word_number_dict, FLAGS.sequence_length)
+    train_sentences, train_labels = data_helper.flatten_sentence_classes(train_sentence_classes)
     dev_sentence_classes = data_helper.load_sentences(FLAGS.dev_data_file, word_number_dict, FLAGS.sequence_length)
 
     num_batches_per_epoch = int((len(train_sentence_classes)-1)/FLAGS.batch_size) + 1
@@ -87,10 +88,35 @@ def main(argv=None):
         word_embedding_static=FLAGS.word_embedding_static)
 
     # Define Training procedure
-    anchor, positive, negative = tf.unstack(
-        tf.reshape(net.normalized_sentence_embeddings, [-1, 3, FLAGS.sentence_embedding_size]), 3, 1)
-    triplet_loss = sentencenet.triplet_loss(anchor, positive, negative, FLAGS.alpha)
-    total_loss = triplet_loss + net.l2_loss * FLAGS.l2_reg_lambda
+    l2_loss = net.l2_loss
+
+    input_label = tf.placeholder(tf.int32, [None, 1], name="input_label")
+
+    # cross entropy
+    num_classes = len(train_sentence_classes)
+    with tf.name_scope("softmax-loss"):
+        weight = tf.Variable(
+            initial_value=tf.truncated_normal([FLAGS.sentence_embedding_size, num_classes], stddev=0.1),
+            name="weight")
+        bias = tf.Variable(tf.constant(0.1, shape=[num_classes]), name="bias")
+        logits = tf.nn.xw_plus_b(net.sentence_embeddings, weight, bias, name="logits")
+        cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
+            labels=input_label, logits=logits, name='cross_entropy_per_example')
+        cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
+
+        l2_loss += tf.nn.l2_loss(weight)
+        l2_loss += tf.nn.l2_loss(bias)
+
+    total_loss = cross_entropy_mean
+
+    if FLAGS.center_loss_factor > 0.0:
+        center_loss, _ = sentencenet.center_loss(net.sentence_embeddings, input_label,
+                                                 FLAGS.center_loss_alfa, num_classes)
+        total_loss += (center_loss * FLAGS.center_loss_factor)
+
+    if FLAGS.center_loss_factor > 0.0:
+        total_loss += (l2_loss * FLAGS.center_loss_factor)
+
     optimizer = sentencenet.get_optimizer(FLAGS.optimizer, learning_rate)
     grads_and_vars = optimizer.compute_gradients(total_loss)
     train_op = optimizer.apply_gradients(grads_and_vars=grads_and_vars, global_step=global_step)
@@ -193,50 +219,6 @@ def main(argv=None):
         print ("\nEvaluation-{}: step {}, min_accuracy {:g}, avg_accuracy {:g}".
                format(time_str, step, min_accuracy, avg_accuracy))
         print("")
-
-
-def select_triplets(sess, net, sentence_classes, max_sentences_per_class, alpha):
-    flatten_sentences = []
-    lengths = []
-    for sentence_class in sentence_classes:
-        num_sentence = len(sentence_class.sentences)
-        if num_sentence > 1:
-            shuffle_indices = np.random.permutation(np.arange(num_sentence))
-            sentences = sentence_class.sentences[shuffle_indices[0:min(num_sentence, max_sentences_per_class)]]
-            flatten_sentences.extend(sentences)
-            lengths.append(len(sentences))
-
-    feed_dict = {
-        net.input_x: np.asarray(flatten_sentences),
-        net.dropout_keep_prob: 1.
-    }
-    sentence_embeddings = sess.run(net.normalized_sentence_embeddings, feed_dict)
-
-    triplet_sentences = []
-    start_index = 0
-    num_anchor_pos = 0
-    for length in lengths:
-        for anchor_index in xrange(start_index, start_index + length - 1):
-            neg_dists_sqr = np.sum(np.square(sentence_embeddings[anchor_index] - sentence_embeddings), 1)
-            for pos_index in xrange(anchor_index + 1, start_index + length):
-                num_anchor_pos += 1
-
-                pos_dist_sqr = np.sum(np.square(sentence_embeddings[anchor_index] - sentence_embeddings[pos_index]))
-                neg_dists_sqr[start_index:start_index + length] = 1000.
-                all_negs = np.where(neg_dists_sqr - pos_dist_sqr < alpha)[0]
-
-                num_all_negs = all_negs.shape[0]
-                if num_all_negs > 0:
-                    random_index = np.random.randint(num_all_negs)
-                    neg_index = all_negs[random_index]
-                    triplet_sentences.append((flatten_sentences[anchor_index],
-                                              flatten_sentences[pos_index],
-                                              flatten_sentences[neg_index]))
-
-        start_index += length
-
-    np.random.shuffle(triplet_sentences)
-    return triplet_sentences, num_anchor_pos
 
 
 if __name__ == '__main__':

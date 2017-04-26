@@ -1,6 +1,5 @@
 import tensorflow as tf
 import numpy as np
-import itertools
 import os
 import time
 import datetime
@@ -136,12 +135,13 @@ def main(argv=None):
             grad_summaries.append(sparsity_summary)
     grad_summaries_merged = tf.summary.merge(grad_summaries)
 
-    # Summaries for losses
-    triplet_loss_summary = tf.summary.scalar("triplet_loss", triplet_loss)
-    total_loss_summary = tf.summary.scalar("total_loss", total_loss)
+    # # Summaries for losses
+    # triplet_loss_summary = tf.summary.scalar("triplet_loss", triplet_loss)
+    # total_loss_summary = tf.summary.scalar("total_loss", total_loss)
 
     # Train Summaries
-    train_summary_op = tf.summary.merge([triplet_loss_summary, total_loss_summary, grad_summaries_merged])
+    # train_summary_op = tf.summary.merge([triplet_loss_summary, total_loss_summary, grad_summaries_merged])
+    train_summary_op = tf.summary.merge([grad_summaries_merged])
     train_summary_dir = os.path.join(out_dir, "summaries", "train")
     train_summary_writer = tf.summary.FileWriter(train_summary_dir, sess.graph)
 
@@ -161,35 +161,24 @@ def main(argv=None):
         saver.restore(sess, checkpoint_file_path)
 
     with sess.as_default():
-        batches = data_helper.batch_iter(train_sentence_classes, FLAGS.batch_size, FLAGS.num_epochs, True)
-        for batch in batches:
-            # Select triplets based on the embeddings
-            print('Selecting suitable triplets for training')
-            triplet_sentences, num_anchor_pos = select_triplets(sess=sess,
-                                                                net=net,
-                                                                sentence_classes=batch,
-                                                                max_sentences_per_class=FLAGS.max_sentences_per_class,
-                                                                alpha=FLAGS.select_alpha)
-            print ("num_anchor_pos, num_triplets = (%d, %d)" % (num_anchor_pos, len(triplet_sentences)))
-
-            if len(triplet_sentences) > 0:
-                # flatten triplet_sentences
-                train_sentences = list(itertools.chain(*triplet_sentences))
-                train_sentences = np.asarray(train_sentences)
-
+        batches = data_helper.flatten_batch_iter(train_sentences, train_labels,
+                                                 FLAGS.batch_size, FLAGS.num_epochs, True)
+        for sentences, labels in batches:
+            if len(sentences) > 0:
                 # train step
                 feed_dict = {
-                    net.input_x: train_sentences,
+                    net.input_x: sentences,
+                    input_label: labels,
                     net.dropout_keep_prob: FLAGS.dropout_keep_prob,
                     learning_rate_placeholder: FLAGS.learning_rate
                 }
-                _, step, summaries, current_triplet_loss, current_total_loss = sess.run(
-                    [train_op, global_step, train_summary_op, triplet_loss, total_loss],
+                _, step, summaries, current_total_loss = sess.run(
+                    [train_op, global_step, train_summary_op, total_loss],
                     feed_dict)
 
                 time_str = datetime.datetime.now().isoformat()
-                print("{}: step {}, triplet_loss {:g}, total_loss {:g}".format(
-                    time_str, step, current_triplet_loss, current_total_loss))
+                print("{}: step {}, total_loss {:g}".format(
+                    time_str, step, current_total_loss))
                 train_summary_writer.add_summary(summaries, step)
 
                 # save checkpoint

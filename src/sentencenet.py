@@ -54,7 +54,9 @@ def center_loss(embeddings, labels, label_counts, alfa, num_classes):
     centers_batch = tf.gather(centers, labels)
     diff = alfa * (centers_batch - embeddings)
     centers = tf.scatter_sub(centers, labels, diff / (label_counts + 1.))
-    loss = tf.nn.l2_loss(embeddings - centers_batch) / embeddings.shape[0]
+    # loss_sum = tf.nn.l2_loss(embeddings - centers_batch)
+    loss_sum = tf.reduce_sum(tf.squared_difference(embeddings, centers_batch), 1)
+    loss = tf.reduce_mean(loss_sum)
     return loss, centers
 
 

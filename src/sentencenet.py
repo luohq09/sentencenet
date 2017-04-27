@@ -32,7 +32,7 @@ def get_label_count(labels):
         else:
             d[labels[i]] = 1
 
-    ret = np.zeros(labels.shape[0])
+    ret = np.zeros(shape=labels.shape[0], dtype=np.float32)
     for i in xrange(labels.shape[0]):
         ret[i] = d[labels[i]]
     return ret
@@ -53,7 +53,7 @@ def center_loss(embeddings, labels, label_counts, alfa, num_classes):
     # label_count = get_label_count(labels)
     centers_batch = tf.gather(centers, labels)
     diff = alfa * (centers_batch - embeddings)
-    centers = tf.scatter_sub(centers, labels, diff / (label_counts + 1))
+    centers = tf.scatter_sub(centers, labels, diff / (label_counts + 1.))
     loss = tf.nn.l2_loss(embeddings - centers_batch) / embeddings.shape[0]
     return loss, centers
 

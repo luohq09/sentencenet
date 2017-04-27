@@ -90,7 +90,7 @@ def main(argv=None):
     l2_loss = net.l2_loss
 
     input_label = tf.placeholder(tf.int32, [None], name="input_label")
-    input_label_count = tf.placeholder(tf.int32, [None], name="input_label_count")
+    input_label_count = tf.placeholder(tf.float32, [None], name="input_label_count")
 
     # cross entropy
     num_classes = len(train_sentence_classes)

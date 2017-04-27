@@ -78,34 +78,24 @@ def main(argv=None):
                                                decay_steps=FLAGS.learning_rate_decay_epochs*num_batches_per_epoch,
                                                decay_rate=FLAGS.learning_rate_decay_factor,
                                                staircase=True)
+
+    num_classes = len(train_sentence_classes)
     net = KimCNN(
         sequence_length=FLAGS.sequence_length,
         filter_sizes=list(map(int, FLAGS.filter_sizes.split(","))),
         num_filters=FLAGS.num_filters,
         pretrained_word_embeddings=word_embeddings,
         sentence_embedding_size=FLAGS.sentence_embedding_size,
-        word_embedding_static=FLAGS.word_embedding_static)
-
-    # Define Training procedure
-    l2_loss = net.l2_loss
+        word_embedding_static=FLAGS.word_embedding_static,
+        num_classes=num_classes)
 
     input_label = tf.placeholder(tf.int32, [None], name="input_label")
     input_label_count = tf.placeholder(tf.float32, [None], name="input_label_count")
 
     # cross entropy
-    num_classes = len(train_sentence_classes)
-    with tf.name_scope("softmax-loss"):
-        weight = tf.Variable(
-            initial_value=tf.truncated_normal([FLAGS.sentence_embedding_size, num_classes], stddev=0.1),
-            name="weight")
-        bias = tf.Variable(tf.constant(0.1, shape=[num_classes]), name="bias")
-        logits = tf.nn.xw_plus_b(net.sentence_embeddings, weight, bias, name="logits")
-        cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-            labels=input_label, logits=logits, name='cross_entropy_per_example')
-        cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
-
-        l2_loss += tf.nn.l2_loss(weight)
-        l2_loss += tf.nn.l2_loss(bias)
+    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
+        labels=input_label, logits=net.logits, name='cross_entropy_per_example')
+    cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
 
     total_loss = cross_entropy_mean
 
@@ -117,8 +107,8 @@ def main(argv=None):
                                                  num_classes)
         total_loss += (center_loss * FLAGS.center_loss_factor)
 
-    if FLAGS.center_loss_factor > 0.0:
-        total_loss += (l2_loss * FLAGS.center_loss_factor)
+    if FLAGS.l2_reg_lambda > 0.0:
+        total_loss += (net.l2_loss * FLAGS.l2_reg_lambda)
 
     optimizer = sentencenet.get_optimizer(FLAGS.optimizer, learning_rate)
     grads_and_vars = optimizer.compute_gradients(total_loss)

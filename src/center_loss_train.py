@@ -89,7 +89,8 @@ def main(argv=None):
     # Define Training procedure
     l2_loss = net.l2_loss
 
-    input_label = tf.placeholder(tf.int32, [None, 1], name="input_label")
+    input_label = tf.placeholder(tf.int32, [None], name="input_label")
+    input_label_count = tf.placeholder(tf.int32, [None], name="input_label_count")
 
     # cross entropy
     num_classes = len(train_sentence_classes)
@@ -109,8 +110,11 @@ def main(argv=None):
     total_loss = cross_entropy_mean
 
     if FLAGS.center_loss_factor > 0.0:
-        center_loss, _ = sentencenet.center_loss(net.sentence_embeddings, input_label,
-                                                 FLAGS.center_loss_alfa, num_classes)
+        center_loss, _ = sentencenet.center_loss(net.sentence_embeddings,
+                                                 input_label,
+                                                 input_label_count,
+                                                 FLAGS.center_loss_alfa,
+                                                 num_classes)
         total_loss += (center_loss * FLAGS.center_loss_factor)
 
     if FLAGS.center_loss_factor > 0.0:
@@ -166,9 +170,11 @@ def main(argv=None):
         for sentences, labels in batches:
             if len(sentences) > 0:
                 # train step
+                label_counts = sentencenet.get_label_count(labels)
                 feed_dict = {
                     net.input_x: sentences,
                     input_label: labels,
+                    input_label_count: label_counts,
                     net.dropout_keep_prob: FLAGS.dropout_keep_prob,
                     learning_rate_placeholder: FLAGS.learning_rate
                 }

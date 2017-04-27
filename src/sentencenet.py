@@ -38,7 +38,7 @@ def get_label_count(labels):
     return ret
 
 
-def center_loss(embeddings, labels, alfa, num_classes):
+def center_loss(embeddings, labels, label_counts, alfa, num_classes):
     """Center loss based on the paper "A Discriminative Feature Learning Approach for Deep Face Recognition"
        (http://ydwen.github.io/papers/WenECCV16.pdf)
     """
@@ -50,10 +50,10 @@ def center_loss(embeddings, labels, alfa, num_classes):
         initializer=tf.constant_initializer(0),
         trainable=False)
     labels = tf.reshape(labels, [-1])
-    label_count = get_label_count(labels)
+    # label_count = get_label_count(labels)
     centers_batch = tf.gather(centers, labels)
     diff = alfa * (centers_batch - embeddings)
-    centers = tf.scatter_sub(centers, labels, diff / (label_count + 1))
+    centers = tf.scatter_sub(centers, labels, diff / (label_counts + 1))
     loss = tf.nn.l2_loss(embeddings - centers_batch) / embeddings.shape[0]
     return loss, centers
 

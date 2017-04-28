@@ -50,8 +50,8 @@ class KimCNN(object):
                     name="pool")
                 pooled_outputs.append(pooled)
 
-                self.l2_loss += tf.nn.l2_loss(weight)
-                self.l2_loss += tf.nn.l2_loss(bias)
+                # self.l2_loss += tf.nn.l2_loss(weight)
+                # self.l2_loss += tf.nn.l2_loss(bias)
 
         # Combine all the pooled features
         num_filters_total = num_filters * len(filter_sizes)

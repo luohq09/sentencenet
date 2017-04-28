@@ -200,11 +200,11 @@ def main(argv=None):
         min_accuracy, avg_accuracy = sentencenet_evaluate.evaluate(sess, net,
                                                                    dev_sentence_classes,
                                                                    train_sentence_classes)
+        classifier_accuracy = sentencenet_evaluate.evaluate_classifier(sess, net, dev_sentence_classes)
         time_str = datetime.datetime.now().isoformat()
-        print ("\nEvaluation-{}: step {}, min_accuracy {:g}, avg_accuracy {:g}".
-               format(time_str, step, min_accuracy, avg_accuracy))
+        print ("\nEvaluation-{}: step {}, min_accuracy {:g}, avg_accuracy {:g}, classifier_accuracy{:g}".
+               format(time_str, step, min_accuracy, avg_accuracy, classifier_accuracy))
         print("")
-
 
 if __name__ == '__main__':
     tf.app.run()

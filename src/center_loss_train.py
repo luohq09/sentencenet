@@ -34,7 +34,7 @@ if __name__ == '__main__':
     tf.app.flags.DEFINE_integer("word_embedding_size", 50, "Dimensionality of the word embedding (default: 50)")
 
     # Training parameters
-    tf.app.flags.DEFINE_integer("batch_size", 300, "Number of sentences per batch (default: 64)")
+    tf.app.flags.DEFINE_integer("batch_size", 300, "Number of sentences per batch (default: 300)")
     tf.app.flags.DEFINE_integer("num_epochs", 200, "Number of training epochs (default: 200)")
     tf.app.flags.DEFINE_integer("evaluate_every", 100, "Evaluate model on dev set after this many steps (default: 100)")
     tf.app.flags.DEFINE_integer("checkpoint_every", 100, "Save model after this many steps (default: 100)")
@@ -203,7 +203,7 @@ def main(argv=None):
                                                                    train_sentence_classes)
         classifier_accuracy = sentencenet_evaluate.evaluate_classifier(sess, net, dev_sentence_classes)
         time_str = datetime.datetime.now().isoformat()
-        print ("\nEvaluation-{}: step {}, min_accuracy {:g}, avg_accuracy {:g}, classifier_accuracy{:g}".
+        print ("\nEvaluation-{}: step {}, min_accuracy {:g}, avg_accuracy {:g}, classifier_accuracy {:g}".
                format(time_str, step, min_accuracy, avg_accuracy, classifier_accuracy))
         print("")
 

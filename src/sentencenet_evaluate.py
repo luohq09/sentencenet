@@ -41,6 +41,14 @@ def generate_embeddings(sess, net, sentences):
     return sess.run(net.normalized_sentence_embeddings, feed_dict)
 
 
+def generate_logits(sess, net, sentences):
+    feed_dict = {
+        net.input_x: sentences,
+        net.dropout_keep_prob: 1.
+    }
+    return sess.run(net.logits, feed_dict)
+
+
 def classify(dev_embedding, train_embeddings, train_sentence_classes, top_k=1):
     dists_sqr = np.sum(np.square(dev_embedding - train_embeddings), 1)
     index = 0
@@ -100,6 +108,20 @@ def evaluate(sess, net, dev_sentence_classes, train_sentence_classes, top_k=1):
             if dev_sentence_class.name in avg_dist_class_names:
                 avg_pos_num += 1
     return float(min_pos_num) / len(dev_flatten_sentences), float(avg_pos_num) / len(dev_flatten_sentences)
+
+
+def evaluate_classifier(sess, net, dev_sentence_classes):
+    dev_flatten_sentences = flatten_sentences(dev_sentence_classes)
+    dev_logits = generate_logits(sess, net, dev_flatten_sentences)
+    labels = np.argmax(dev_logits, 1)
+    pos_num = 0
+    index = 0
+    for dev_sentence_class in dev_sentence_classes:
+        for i in xrange(len(dev_sentence_class.sentences)):
+            if labels[index] == dev_sentence_class.class_no:
+                pos_num += 1
+            index += 1
+    return float(pos_num) / len(dev_flatten_sentences)
 
 
 def main(argv=None):

@@ -1,5 +1,4 @@
 import tensorflow as tf
-#import tensorflow.contrib as tfcontrib
 
 
 class KimCNN(object):
@@ -9,7 +8,8 @@ class KimCNN(object):
                  num_filters,
                  pretrained_word_embeddings,
                  sentence_embedding_size,
-                 word_embedding_static):
+                 word_embedding_static,
+                 num_classes=None):
         # Placeholders for input, dropout and pretrained_embedding
         self.input_x = tf.placeholder(tf.int32, [None, sequence_length], name="input_x")
         self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
@@ -50,8 +50,8 @@ class KimCNN(object):
                     name="pool")
                 pooled_outputs.append(pooled)
 
-                self.l2_loss += tf.nn.l2_loss(weight)
-                self.l2_loss += tf.nn.l2_loss(bias)
+                # self.l2_loss += tf.nn.l2_loss(weight)
+                # self.l2_loss += tf.nn.l2_loss(bias)
 
         # Combine all the pooled features
         num_filters_total = num_filters * len(filter_sizes)
@@ -74,3 +74,14 @@ class KimCNN(object):
 
             self.l2_loss += tf.nn.l2_loss(weight)
             self.l2_loss += tf.nn.l2_loss(bias)
+
+        if num_classes:
+            with tf.name_scope("softmax"):
+                weight = tf.Variable(
+                    initial_value=tf.truncated_normal([sentence_embedding_size, num_classes], stddev=0.1),
+                    name="weight")
+                bias = tf.Variable(tf.constant(0.1, shape=[num_classes]), name="bias")
+                self.logits = tf.nn.xw_plus_b(self.sentence_embeddings, weight, bias, name="logits")
+
+                self.l2_loss += tf.nn.l2_loss(weight)
+                self.l2_loss += tf.nn.l2_loss(bias)

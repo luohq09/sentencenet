@@ -13,6 +13,7 @@ class LSHIndexer(object):
         # const parameters
         num_hash_bits = 20
         num_hash_tables = 30
+        num_probes = num_hash_tables
 
         print('Constructing the LSH table.')
         s_t = timeit.default_timer()
@@ -33,17 +34,19 @@ class LSHIndexer(object):
         fcn.compute_number_of_hash_functions(num_hash_bits, params)
 
         self.lsh_table = fcn.LSHIndex(params)
+        self.lsh_table.set_num_probes(num_probes)
+
         self.lsh_table.setup(dataset)
         s_e = timeit.default_timer()
         print('Done')
         print('Construction time: {}'.format(s_e - s_t))
 
     def find_k_nearest_neighbors(self, query, k=1):
-        if self.data_center:
+        if self.data_center is not None:
             query -= self.data_center
 
         if k == 1:
-            return self.lsh_table.find_nearest_neighbor(query)
+            return [self.lsh_table.find_nearest_neighbor(query)]
         else:
             return self.lsh_table.find_k_nearest_neighbors(query, k)
 

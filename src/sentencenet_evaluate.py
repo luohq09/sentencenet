@@ -1,10 +1,13 @@
 import numpy as np
 import tensorflow as tf
 import datetime
+import timeit
 
 from model.kim_cnn import KimCNN
 import pretrained_word_embedding
 import data_helper
+
+import index.lsh_indexer as lsh
 
 if __name__ == '__main__':
     tf.app.flags.DEFINE_integer("top_k", 1, "Select top k candidates (default: 1)")
@@ -23,14 +26,24 @@ if __name__ == '__main__':
     tf.app.flags.DEFINE_integer("num_filters", 128, "Number of filters per filter size (default: 128)")
     tf.app.flags.DEFINE_integer("word_embedding_size", 50, "Dimensionality of the word embedding (default: 50)")
 
+    tf.app.flags.DEFINE_boolean("use_lsh", False, "Whether to use lsh to index the train data (default: False)")
+
     FLAGS = tf.app.flags.FLAGS
+
+    FLAGS._parse_flags()
+    print("\nParameters:")
+    for attr, value in sorted(FLAGS.__flags.items()):
+        print("{}={}".format(attr.upper(), value))
+    print("")
 
 
 def flatten_sentences(sentence_classes):
     sentences = []
+    class_nos = []
     for sentence_class in sentence_classes:
         sentences.extend(sentence_class.sentences)
-    return np.asarray(sentences)
+        class_nos.extend([sentence_class.class_no] * len(sentence_class.sentences))
+    return np.asarray(sentences), np.asarray(class_nos)
 
 
 def generate_embeddings(sess, net, sentences):
@@ -88,8 +101,8 @@ def classify(dev_embedding, train_embeddings, train_sentence_classes, top_k=1):
 
 def evaluate(sess, net, dev_sentence_classes, train_sentence_classes, top_k=1):
     # flatten sentences
-    dev_flatten_sentences = flatten_sentences(dev_sentence_classes)
-    train_flatten_sentences = flatten_sentences(train_sentence_classes)
+    dev_flatten_sentences, _ = flatten_sentences(dev_sentence_classes)
+    train_flatten_sentences, _ = flatten_sentences(train_sentence_classes)
 
     # generate embeddings
     dev_embeddings = generate_embeddings(sess, net, dev_flatten_sentences)
@@ -98,6 +111,8 @@ def evaluate(sess, net, dev_sentence_classes, train_sentence_classes, top_k=1):
     avg_pos_num = 0
     min_pos_num = 0
     index = 0
+    print("Start to search...")
+    s_t = timeit.default_timer()
     for dev_sentence_class in dev_sentence_classes:
         for i in xrange(len(dev_sentence_class.sentences)):
             min_dist_class_names, _, _, avg_dist_class_names, _, _ = classify(
@@ -107,11 +122,41 @@ def evaluate(sess, net, dev_sentence_classes, train_sentence_classes, top_k=1):
                 min_pos_num += 1
             if dev_sentence_class.name in avg_dist_class_names:
                 avg_pos_num += 1
+    s_e = timeit.default_timer()
+    print('Done')
+    print('Search time: {}'.format(s_e - s_t))
     return float(min_pos_num) / len(dev_flatten_sentences), float(avg_pos_num) / len(dev_flatten_sentences)
 
 
+def evaluate_use_lsh(sess, net, dev_sentence_classes, train_sentence_classes, top_k=1):
+    # flatten sentences
+    dev_flatten_sentences, dev_class_nos = flatten_sentences(dev_sentence_classes)
+    train_flatten_sentences, train_class_nos = flatten_sentences(train_sentence_classes)
+
+    # generate embeddings
+    dev_embeddings = generate_embeddings(sess, net, dev_flatten_sentences)
+    train_embeddings = generate_embeddings(sess, net, train_flatten_sentences)
+
+    indexer = lsh.LSHIndexer()
+    indexer.build_index(train_embeddings, True)
+
+    print("Start to search...")
+    s_t = timeit.default_timer()
+    pos_num = 0
+    for i in xrange(len(dev_embeddings)):
+        nearest_neighbors = indexer.find_k_nearest_neighbors(dev_embeddings[i], top_k)
+        find_class_nos = [train_class_nos[pos] for pos in nearest_neighbors]
+        if dev_class_nos[i] in find_class_nos:
+            pos_num += 1
+    s_e = timeit.default_timer()
+    print('Done')
+    print('Search time: {}'.format(s_e - s_t))
+
+    return float(pos_num) / len(dev_flatten_sentences)
+
+
 def evaluate_classifier(sess, net, dev_sentence_classes):
-    dev_flatten_sentences = flatten_sentences(dev_sentence_classes)
+    dev_flatten_sentences, _ = flatten_sentences(dev_sentence_classes)
     dev_logits = generate_logits(sess, net, dev_flatten_sentences)
     labels = np.argmax(dev_logits, 1)
     pos_num = 0
@@ -147,12 +192,25 @@ def main(argv=None):
     else:
         checkpoint_file_path = tf.train.latest_checkpoint(FLAGS.model_restore_dir)
         saver.restore(sess, checkpoint_file_path)
+    print("Start to evaluate...")
+    s_t = timeit.default_timer()
 
-    min_accuracy, avg_accuracy = evaluate(sess, net, dev_sentence_classes, train_sentence_classes, FLAGS.top_k)
-    time_str = datetime.datetime.now().isoformat()
-    print ("\nEvaluation-{}: min_accuracy {:g}, avg_accuracy {:g}".
-           format(time_str, min_accuracy, avg_accuracy))
-    print("")
+    if FLAGS.use_lsh:
+        accuracy = evaluate_use_lsh(sess, net, dev_sentence_classes, train_sentence_classes, FLAGS.top_k)
+        time_str = datetime.datetime.now().isoformat()
+        print ("\nEvaluation-{}: accuracy {:g}".
+               format(time_str, accuracy))
+        print("")
+    else:
+        min_accuracy, avg_accuracy = evaluate(sess, net, dev_sentence_classes, train_sentence_classes, FLAGS.top_k)
+        time_str = datetime.datetime.now().isoformat()
+        print ("\nEvaluation-{}: min_accuracy {:g}, avg_accuracy {:g}".
+               format(time_str, min_accuracy, avg_accuracy))
+        print("")
+
+    s_e = timeit.default_timer()
+    print('Done')
+    print('Evaluate time: {}'.format(s_e - s_t))
 
 if __name__ == '__main__':
     tf.app.run()

@@ -3,13 +3,15 @@ import numpy as np
 
 class SentenceClass:
     class_dict = {}
+    class_names = []
 
     def __init__(self, name, sentences, negative=None):
         self.name = name
         if name in SentenceClass.class_dict:
             self.class_no = SentenceClass.class_dict[name]
         else:
-            self.class_no = len(SentenceClass.class_dict)
+            self.class_no = len(SentenceClass.class_names)
+            SentenceClass.class_names.append(name)
             SentenceClass.class_dict[name] = self.class_no
         self.sentences = sentences
         self.negative = negative

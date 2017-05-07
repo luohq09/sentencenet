@@ -34,9 +34,9 @@ class LSHIndexer(object):
         fcn.compute_number_of_hash_functions(num_hash_bits, params)
 
         self.lsh_table = fcn.LSHIndex(params)
+        self.lsh_table.setup(dataset)
         self.lsh_table.set_num_probes(num_probes)
 
-        self.lsh_table.setup(dataset)
         s_e = timeit.default_timer()
         print('Done')
         print('Construction time: {}'.format(s_e - s_t))
